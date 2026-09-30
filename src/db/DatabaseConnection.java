@@ -97,15 +97,16 @@ public class DatabaseConnection {
         // ---------------------------------------------------------
 
         String createIPRecordsTable =
-                "CREATE TABLE IF NOT EXISTS ip_records (" +
-                "    id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "    type TEXT NOT NULL," +
-                "    title TEXT NOT NULL," +
-                "    inventor_name TEXT NOT NULL," +
-                "    filing_date TEXT NOT NULL," +
-                "    status TEXT NOT NULL," +
-                "    description TEXT" +
-                ");";
+        "CREATE TABLE IF NOT EXISTS ip_records (" +
+        "    id INTEGER PRIMARY KEY AUTOINCREMENT," +
+        "    type TEXT NOT NULL," +
+        "    title TEXT NOT NULL," +
+        "    inventor_name TEXT NOT NULL," +
+        "    filing_date TEXT NOT NULL," +
+        "    status TEXT NOT NULL," +
+        "    description TEXT," +
+        "    sub_type_value TEXT" +
+        ");";
 
         // ---------------------------------------------------------
         // APPLICATIONS TABLE
