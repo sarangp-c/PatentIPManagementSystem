@@ -105,7 +105,51 @@ The DAO layer is connected to the SQLite database through the singleton `Databas
 
 ---
 
+## Phase 4 Status: Swing GUI ✅ COMPLETE
+
+### GUI Components
+
+Implemented a Java Swing-based graphical user interface for the system.
+
+The GUI includes:
+
+- Main dashboard for navigating the system.
+- IP Records management interface.
+- Applications management interface.
+
+### IP Records Management
+
+The IP Records GUI supports:
+
+- Adding new Patent, Trademark and Copyright records.
+- Viewing all IP records.
+- Updating existing IP records.
+- Deleting IP records.
+- Displaying record details through the GUI.
+
+### Application Management
+
+The Applications GUI supports:
+
+- Adding new applications.
+- Viewing all applications.
+- Updating application status and details.
+- Deleting applications.
+- Linking applications with existing IP records.
+
+### Database Integration
+
+The Swing GUI is fully connected to the existing DAO and JDBC layers.
+
+```text
+Swing GUI
+    ↓
+DAO Layer
+    ↓
+JDBC
+    ↓
+SQLite Database
+
 ## What's Next
 
-- Phase 4: Swing GUI
 - Phase 5: Wiring + testing
