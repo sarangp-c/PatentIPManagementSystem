@@ -44,8 +44,68 @@ Database connection closed.
 This creates `patent_ip_system.db` in the project root — a real SQLite file you can
 inspect with any SQLite browser (e.g. DB Browser for SQLite).
 
+## Phase 2 Status: Database Schema + OOP Domain Models ✅ COMPLETE
+
+### Database Schema
+
+Implemented the SQLite database with the following tables:
+
+- `users` — stores user information and roles.
+- `ip_records` — stores Patent, Trademark and Copyright records.
+- `applications` — stores application tracking information.
+
+Foreign key relationships are implemented between `applications`, `ip_records`, and `users`.
+
+### OOP Domain Models
+
+Implemented the following classes:
+
+- `IntellectualProperty` — abstract base class.
+- `Patent` — extends `IntellectualProperty`.
+- `Trademark` — extends `IntellectualProperty`.
+- `Copyright` — extends `IntellectualProperty`.
+- `Application` — represents IP application tracking.
+- `Trackable` — interface for application tracking.
+- `User` — represents system users.
+- `Role` — represents user roles.
+
+### OOP Concepts Used
+
+- Abstraction
+- Inheritance
+- Encapsulation
+- Polymorphism
+- Interfaces
+
+---
+## Phase 3 Status: DAO Layer ✅ COMPLETE
+
+### Implemented DAOs
+
+- `IPRecordDAO` — CRUD operations for Intellectual Property records.
+- `ApplicationDAO` — CRUD operations for IP applications.
+
+### Completed Operations
+
+- Create / Add records
+- Read / Retrieve records
+- Update records
+- Delete records
+
+### Testing
+
+- IP record CRUD operations tested successfully.
+- Application CRUD operations tested successfully.
+- Database relationships between IP records and applications verified.
+- DAO operations use JDBC with prepared statements.
+
+### Database Integration
+
+The DAO layer is connected to the SQLite database through the singleton `DatabaseConnection` class.
+
+---
+
 ## What's Next
-- Phase 2: Database schema (ip_records, applications tables) + OOP domain models - Completed
-- Phase 3: DAO layer -  Completed
+
 - Phase 4: Swing GUI
 - Phase 5: Wiring + testing
