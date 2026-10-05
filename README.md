@@ -45,7 +45,7 @@ This creates `patent_ip_system.db` in the project root — a real SQLite file yo
 inspect with any SQLite browser (e.g. DB Browser for SQLite).
 
 ## What's Next
-- Phase 2: Database schema (ip_records, applications tables) + OOP domain models
-- Phase 3: DAO layer
+- Phase 2: Database schema (ip_records, applications tables) + OOP domain models - Completed
+- Phase 3: DAO layer -  Completed
 - Phase 4: Swing GUI
 - Phase 5: Wiring + testing
