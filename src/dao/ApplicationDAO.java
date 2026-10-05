@@ -10,14 +10,45 @@ import java.sql.SQLException;
 
 public class ApplicationDAO {
 
+    private String lastError = "";
+
+    public String getLastError() {
+        return lastError;
+    }
+
     public boolean add(Application app) {
 
+        lastError = "";
+
+        String checkIP = "SELECT id FROM ip_records WHERE id = ?";
+
         String sql =
-            "INSERT INTO applications " +
-            "(ip_id, current_stage, last_updated, reviewer_id, remarks) " +
-            "VALUES (?, ?, ?, ?, ?)";
+                "INSERT INTO applications " +
+                "(ip_id, current_stage, last_updated, reviewer_id, remarks) " +
+                "VALUES (?, ?, ?, ?, ?)";
 
         Connection conn = DatabaseConnection.getConnection();
+
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkIP)) {
+
+            checkStmt.setInt(1, app.getIpId());
+
+            try (ResultSet rs = checkStmt.executeQuery()) {
+
+                if (!rs.next()) {
+
+                    lastError = "IP Record ID " + app.getIpId()
+                            + " does not exist.";
+
+                    return false;
+                }
+            }
+
+        } catch (SQLException e) {
+
+            lastError = e.getMessage();
+            return false;
+        }
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -37,6 +68,8 @@ public class ApplicationDAO {
 
         } catch (SQLException e) {
 
+            lastError = e.getMessage();
+
             System.err.println("Failed to add application.");
             e.printStackTrace();
 
@@ -44,40 +77,55 @@ public class ApplicationDAO {
         }
     }
 
-    public void getAll() {
+    public String getAll() {
 
         String sql = "SELECT * FROM applications";
 
         Connection conn = DatabaseConnection.getConnection();
+
+        StringBuilder result = new StringBuilder();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
 
-                System.out.println(
-                    "ID: " + rs.getInt("id") +
-                    " | IP ID: " + rs.getInt("ip_id") +
-                    " | Stage: " + rs.getString("current_stage") +
-                    " | Last Updated: " + rs.getString("last_updated") +
-                    " | Reviewer ID: " + rs.getObject("reviewer_id") +
-                    " | Remarks: " + rs.getString("remarks")
+                result.append(
+                        "ID: " + rs.getInt("id") +
+                        " | IP ID: " + rs.getInt("ip_id") +
+                        " | Stage: " + rs.getString("current_stage") +
+                        " | Last Updated: " + rs.getString("last_updated") +
+                        " | Reviewer ID: " + rs.getObject("reviewer_id") +
+                        " | Remarks: " + rs.getString("remarks")
                 );
+
+                result.append("\n");
             }
+
+            if (result.length() == 0) {
+                return "No applications found.";
+            }
+
+            return result.toString();
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to retrieve applications.");
+            lastError = e.getMessage();
+
             e.printStackTrace();
+
+            return "Failed to retrieve applications.";
         }
     }
 
     public boolean update(Application app) {
 
+        lastError = "";
+
         String sql =
-            "UPDATE applications SET " +
-            "ip_id = ?, current_stage = ?, last_updated = ?, " +
-            "reviewer_id = ?, remarks = ? WHERE id = ?";
+                "UPDATE applications SET " +
+                "ip_id = ?, current_stage = ?, last_updated = ?, " +
+                "reviewer_id = ?, remarks = ? WHERE id = ?";
 
         Connection conn = DatabaseConnection.getConnection();
 
@@ -100,7 +148,8 @@ public class ApplicationDAO {
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to update application.");
+            lastError = e.getMessage();
+
             e.printStackTrace();
 
             return false;
@@ -108,6 +157,8 @@ public class ApplicationDAO {
     }
 
     public boolean delete(int id) {
+
+        lastError = "";
 
         String sql = "DELETE FROM applications WHERE id = ?";
 
@@ -121,7 +172,8 @@ public class ApplicationDAO {
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to delete application.");
+            lastError = e.getMessage();
+
             e.printStackTrace();
 
             return false;
