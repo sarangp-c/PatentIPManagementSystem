@@ -164,3 +164,67 @@ DAO Layer
 JDBC
     ↓
 SQLite Database
+
+## Additional Features
+
+### Authentication and Role-Based Access
+
+A login system has been implemented to provide secure access to the system.
+
+The system supports three user roles:
+
+- **ADMIN** – Full access to all system features.
+- **RESEARCHER** – Can add, view and update IP records and view applications.
+- **REVIEWER** – Can view IP records and view/update applications.
+
+Access to different operations is controlled based on the logged-in user's role.
+
+### User Management
+
+An Admin-only User Management feature has been added.
+
+The Admin can:
+
+- View all users.
+- Add new users.
+- Update user details and roles.
+- Delete users.
+- Assign roles such as ADMIN, RESEARCHER and REVIEWER.
+
+The system prevents the currently logged-in administrator from deleting their own account.
+
+### Permission Feedback
+
+The GUI provides clear feedback for restricted operations.
+
+- Restricted actions display meaningful messages when hovered over.
+- Attempting to use a restricted action displays an access warning.
+- User Management is visible only to administrators.
+- Role-specific permissions are applied consistently across the system.
+
+### Logout
+
+A logout feature has been implemented to allow users to safely return to the login screen.
+
+### Additional Testing
+
+The authentication and role-based access features were tested using the different user roles.
+
+##What's next
+
+ Dashboard with statistics	
+ Search & Filter IP records
+ Application status tracking	
+ Application history
+ Deadline / renewal reminders	
+ Generate reports
+ User management
+ Charts / analytics	
+ Document attachment system
+
+- Admin access tested successfully.
+- Researcher access tested successfully.
+- Reviewer access tested successfully.
+- Restricted operations tested successfully.
+- User Management access tested successfully.
+- Logout functionality tested successfully.
