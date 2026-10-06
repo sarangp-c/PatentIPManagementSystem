@@ -2,6 +2,8 @@ package ui;
 
 import dao.ApplicationDAO;
 import model.Application;
+import model.Role;
+import model.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,16 +20,35 @@ public class ApplicationFrame extends JFrame {
     private JTextArea outputArea;
 
     private ApplicationDAO dao;
+    private User loggedInUser;
 
-    public ApplicationFrame() {
+    private JButton addButton;
+    private JButton viewButton;
+    private JButton updateButton;
+    private JButton deleteButton;
+    private JButton clearButton;
 
+    private String addPermissionMessage = "";
+    private String updatePermissionMessage = "";
+    private String deletePermissionMessage = "";
+
+    public ApplicationFrame(User user) {
+
+        loggedInUser = user;
         dao = new ApplicationDAO();
 
-        setTitle("Applications");
+        setTitle(
+                "Applications - "
+                        + user.getRole()
+        );
+
         setSize(850, 600);
         setLocationRelativeTo(null);
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 8, 8));
+        JPanel formPanel =
+                new JPanel(
+                        new GridLayout(6, 2, 8, 8)
+                );
 
         idField = new JTextField();
         ipIdField = new JTextField();
@@ -36,31 +57,53 @@ public class ApplicationFrame extends JFrame {
         reviewerField = new JTextField();
         remarksField = new JTextField();
 
-        formPanel.add(new JLabel("Application ID:"));
+        formPanel.add(
+                new JLabel("Application ID:")
+        );
         formPanel.add(idField);
 
-        formPanel.add(new JLabel("IP Record ID:"));
+        formPanel.add(
+                new JLabel("IP Record ID:")
+        );
         formPanel.add(ipIdField);
 
-        formPanel.add(new JLabel("Current Stage:"));
+        formPanel.add(
+                new JLabel("Current Stage:")
+        );
         formPanel.add(stageField);
 
-        formPanel.add(new JLabel("Last Updated:"));
+        formPanel.add(
+                new JLabel("Last Updated:")
+        );
         formPanel.add(dateField);
 
-        formPanel.add(new JLabel("Reviewer ID:"));
+        formPanel.add(
+                new JLabel("Reviewer ID:")
+        );
         formPanel.add(reviewerField);
 
-        formPanel.add(new JLabel("Remarks:"));
+        formPanel.add(
+                new JLabel("Remarks:")
+        );
         formPanel.add(remarksField);
 
-        JButton addButton = new JButton("Add");
-        JButton viewButton = new JButton("View All");
-        JButton updateButton = new JButton("Update");
-        JButton deleteButton = new JButton("Delete");
-        JButton clearButton = new JButton("Clear");
+        addButton =
+                new JButton("Add");
 
-        JPanel buttonPanel = new JPanel();
+        viewButton =
+                new JButton("View All");
+
+        updateButton =
+                new JButton("Update");
+
+        deleteButton =
+                new JButton("Delete");
+
+        clearButton =
+                new JButton("Clear");
+
+        JPanel buttonPanel =
+                new JPanel();
 
         buttonPanel.add(addButton);
         buttonPanel.add(viewButton);
@@ -68,37 +111,230 @@ public class ApplicationFrame extends JFrame {
         buttonPanel.add(deleteButton);
         buttonPanel.add(clearButton);
 
-        outputArea = new JTextArea();
+        outputArea =
+                new JTextArea();
+
         outputArea.setEditable(false);
 
-        add(formPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.CENTER);
-        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+        add(
+                formPanel,
+                BorderLayout.NORTH
+        );
 
-        addButton.addActionListener(e -> addApplication());
+        add(
+                buttonPanel,
+                BorderLayout.CENTER
+        );
 
-        viewButton.addActionListener(e -> {
-            outputArea.setText(dao.getAll());
-        });
+        add(
+                new JScrollPane(outputArea),
+                BorderLayout.SOUTH
+        );
 
-        updateButton.addActionListener(e -> updateApplication());
+        addButton.addActionListener(
+                e -> {
 
-        deleteButton.addActionListener(e -> deleteApplication());
+                    if (!addPermissionMessage.isEmpty()) {
 
-        clearButton.addActionListener(e -> clearFields());
+                        showPermissionMessage(
+                                addPermissionMessage
+                        );
+
+                    } else {
+
+                        addApplication();
+                    }
+                }
+        );
+
+        viewButton.addActionListener(e ->
+                outputArea.setText(
+                        dao.getAll()
+                )
+        );
+
+        updateButton.addActionListener(
+                e -> {
+
+                    if (!updatePermissionMessage.isEmpty()) {
+
+                        showPermissionMessage(
+                                updatePermissionMessage
+                        );
+
+                    } else {
+
+                        updateApplication();
+                    }
+                }
+        );
+
+        deleteButton.addActionListener(
+                e -> {
+
+                    if (!deletePermissionMessage.isEmpty()) {
+
+                        showPermissionMessage(
+                                deletePermissionMessage
+                        );
+
+                    } else {
+
+                        deleteApplication();
+                    }
+                }
+        );
+
+        clearButton.addActionListener(
+                e -> clearFields()
+        );
+
+        applyPermissions();
+    }
+
+    private void applyPermissions() {
+
+        Role role =
+                loggedInUser.getRole();
+
+        if (role == Role.ADMIN) {
+
+            addButton.setToolTipText(
+                    "Add applications"
+            );
+
+            viewButton.setToolTipText(
+                    "View all applications"
+            );
+
+            updateButton.setToolTipText(
+                    "Update applications"
+            );
+
+            deleteButton.setToolTipText(
+                    "Delete applications"
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+
+        } else if (role == Role.REVIEWER) {
+
+            addPermissionMessage =
+                    "Only Admin can add applications.";
+
+            deletePermissionMessage =
+                    "Only Admin can delete applications.";
+
+            makeRestrictedButton(
+                    addButton,
+                    addPermissionMessage
+            );
+
+            makeRestrictedButton(
+                    deleteButton,
+                    deletePermissionMessage
+            );
+
+            viewButton.setToolTipText(
+                    "View all applications"
+            );
+
+            updateButton.setToolTipText(
+                    "Update application status and details"
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+
+        } else if (role == Role.RESEARCHER) {
+
+            addPermissionMessage =
+                    "Only Admin can add applications.";
+
+            updatePermissionMessage =
+                    "Only Admin or Reviewer can update applications.";
+
+            deletePermissionMessage =
+                    "Only Admin can delete applications.";
+
+            makeRestrictedButton(
+                    addButton,
+                    addPermissionMessage
+            );
+
+            makeRestrictedButton(
+                    updateButton,
+                    updatePermissionMessage
+            );
+
+            makeRestrictedButton(
+                    deleteButton,
+                    deletePermissionMessage
+            );
+
+            viewButton.setToolTipText(
+                    "View all applications"
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+        }
+    }
+
+    private void makeRestrictedButton(
+            JButton button,
+            String message) {
+
+        button.setToolTipText(message);
+
+        button.setForeground(
+                UIManager.getColor(
+                        "Button.disabledText"
+                )
+        );
+
+        button.setBackground(
+                UIManager.getColor(
+                        "Button.background"
+                )
+        );
+    }
+
+    private void showPermissionMessage(
+            String message) {
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Access Restricted",
+                JOptionPane.WARNING_MESSAGE
+        );
     }
 
     private Application createApplication() {
 
-        int id = idField.getText().isEmpty()
-                ? 0
-                : Integer.parseInt(idField.getText());
+        int id =
+                idField.getText().isEmpty()
+                        ? 0
+                        : Integer.parseInt(
+                                idField.getText()
+                        );
 
-        int ipId = Integer.parseInt(ipIdField.getText());
+        int ipId =
+                Integer.parseInt(
+                        ipIdField.getText()
+                );
 
-        int reviewerId = reviewerField.getText().isEmpty()
-                ? 0
-                : Integer.parseInt(reviewerField.getText());
+        int reviewerId =
+                reviewerField.getText().isEmpty()
+                        ? 0
+                        : Integer.parseInt(
+                                reviewerField.getText()
+                        );
 
         return new Application(
                 id,
@@ -125,7 +361,8 @@ public class ApplicationFrame extends JFrame {
                 return;
             }
 
-            Application app = createApplication();
+            Application app =
+                    createApplication();
 
             if (dao.add(app)) {
 
@@ -135,7 +372,10 @@ public class ApplicationFrame extends JFrame {
                 );
 
                 clearFields();
-                outputArea.setText(dao.getAll());
+
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 
@@ -157,7 +397,8 @@ public class ApplicationFrame extends JFrame {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Error: " + e.getMessage()
+                    "Error: "
+                            + e.getMessage()
             );
         }
     }
@@ -176,7 +417,8 @@ public class ApplicationFrame extends JFrame {
                 return;
             }
 
-            Application app = createApplication();
+            Application app =
+                    createApplication();
 
             if (dao.update(app)) {
 
@@ -185,7 +427,9 @@ public class ApplicationFrame extends JFrame {
                         "Application updated successfully!"
                 );
 
-                outputArea.setText(dao.getAll());
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 
@@ -207,7 +451,8 @@ public class ApplicationFrame extends JFrame {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Error: " + e.getMessage()
+                    "Error: "
+                            + e.getMessage()
             );
         }
     }
@@ -226,7 +471,10 @@ public class ApplicationFrame extends JFrame {
                 return;
             }
 
-            int id = Integer.parseInt(idField.getText());
+            int id =
+                    Integer.parseInt(
+                            idField.getText()
+                    );
 
             if (dao.delete(id)) {
 
@@ -236,7 +484,10 @@ public class ApplicationFrame extends JFrame {
                 );
 
                 clearFields();
-                outputArea.setText(dao.getAll());
+
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 

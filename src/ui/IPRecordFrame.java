@@ -4,7 +4,9 @@ import dao.IPRecordDAO;
 import model.Copyright;
 import model.IntellectualProperty;
 import model.Patent;
+import model.Role;
 import model.Trademark;
+import model.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,21 +24,44 @@ public class IPRecordFrame extends JFrame {
     private JTextArea outputArea;
 
     private IPRecordDAO dao;
+    private User loggedInUser;
 
-    public IPRecordFrame() {
+    private JButton addButton;
+    private JButton viewButton;
+    private JButton updateButton;
+    private JButton deleteButton;
+    private JButton clearButton;
 
+    private String addPermissionMessage = "";
+    private String updatePermissionMessage = "";
+    private String deletePermissionMessage = "";
+
+    public IPRecordFrame(User user) {
+
+        loggedInUser = user;
         dao = new IPRecordDAO();
 
-        setTitle("IP Records");
+        setTitle(
+                "IP Records - "
+                        + user.getRole()
+        );
+
         setSize(900, 650);
         setLocationRelativeTo(null);
 
-        JPanel formPanel = new JPanel(new GridLayout(8, 2, 8, 8));
+        JPanel formPanel =
+                new JPanel(
+                        new GridLayout(8, 2, 8, 8)
+                );
 
         idField = new JTextField();
 
         typeBox = new JComboBox<>(
-                new String[]{"Patent", "Trademark", "Copyright"}
+                new String[]{
+                        "Patent",
+                        "Trademark",
+                        "Copyright"
+                }
         );
 
         titleField = new JTextField();
@@ -45,7 +70,8 @@ public class IPRecordFrame extends JFrame {
         statusField = new JTextField();
         subtypeField = new JTextField();
 
-        descriptionArea = new JTextArea(3, 20);
+        descriptionArea =
+                new JTextArea(3, 20);
 
         formPanel.add(new JLabel("ID:"));
         formPanel.add(idField);
@@ -56,28 +82,43 @@ public class IPRecordFrame extends JFrame {
         formPanel.add(new JLabel("Title:"));
         formPanel.add(titleField);
 
-        formPanel.add(new JLabel("Inventor / Owner:"));
+        formPanel.add(
+                new JLabel("Inventor / Owner:")
+        );
         formPanel.add(inventorField);
 
-        formPanel.add(new JLabel("Filing Date:"));
+        formPanel.add(
+                new JLabel("Filing Date:")
+        );
         formPanel.add(dateField);
 
-        formPanel.add(new JLabel("Status:"));
+        formPanel.add(
+                new JLabel("Status:")
+        );
         formPanel.add(statusField);
 
-        formPanel.add(new JLabel("Category / Class / Work Type:"));
+        formPanel.add(
+                new JLabel(
+                        "Category / Class / Work Type:"
+                )
+        );
         formPanel.add(subtypeField);
 
-        formPanel.add(new JLabel("Description:"));
-        formPanel.add(new JScrollPane(descriptionArea));
+        formPanel.add(
+                new JLabel("Description:")
+        );
+        formPanel.add(
+                new JScrollPane(descriptionArea)
+        );
 
-        JButton addButton = new JButton("Add");
-        JButton viewButton = new JButton("View All");
-        JButton updateButton = new JButton("Update");
-        JButton deleteButton = new JButton("Delete");
-        JButton clearButton = new JButton("Clear");
+        addButton = new JButton("Add");
+        viewButton = new JButton("View All");
+        updateButton = new JButton("Update");
+        deleteButton = new JButton("Delete");
+        clearButton = new JButton("Clear");
 
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel =
+                new JPanel();
 
         buttonPanel.add(addButton);
         buttonPanel.add(viewButton);
@@ -85,40 +126,235 @@ public class IPRecordFrame extends JFrame {
         buttonPanel.add(deleteButton);
         buttonPanel.add(clearButton);
 
-        outputArea = new JTextArea();
+        outputArea =
+                new JTextArea();
+
         outputArea.setEditable(false);
 
-        add(formPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.CENTER);
-        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+        add(
+                formPanel,
+                BorderLayout.NORTH
+        );
 
-        addButton.addActionListener(e -> addRecord());
+        add(
+                buttonPanel,
+                BorderLayout.CENTER
+        );
 
-        viewButton.addActionListener(e -> {
-            outputArea.setText(dao.getAll());
-        });
+        add(
+                new JScrollPane(outputArea),
+                BorderLayout.SOUTH
+        );
 
-        updateButton.addActionListener(e -> updateRecord());
+        addButton.addActionListener(
+                e -> {
 
-        deleteButton.addActionListener(e -> deleteRecord());
+                    if (!addPermissionMessage.isEmpty()) {
 
-        clearButton.addActionListener(e -> clearFields());
+                        showPermissionMessage(
+                                addPermissionMessage
+                        );
+
+                    } else {
+
+                        addRecord();
+                    }
+                }
+        );
+
+        viewButton.addActionListener(e ->
+                outputArea.setText(
+                        dao.getAll()
+                )
+        );
+
+        updateButton.addActionListener(
+                e -> {
+
+                    if (!updatePermissionMessage.isEmpty()) {
+
+                        showPermissionMessage(
+                                updatePermissionMessage
+                        );
+
+                    } else {
+
+                        updateRecord();
+                    }
+                }
+        );
+
+        deleteButton.addActionListener(
+                e -> {
+
+                    if (!deletePermissionMessage.isEmpty()) {
+
+                        showPermissionMessage(
+                                deletePermissionMessage
+                        );
+
+                    } else {
+
+                        deleteRecord();
+                    }
+                }
+        );
+
+        clearButton.addActionListener(
+                e -> clearFields()
+        );
+
+        applyPermissions();
+    }
+
+    private void applyPermissions() {
+
+        Role role =
+                loggedInUser.getRole();
+
+        if (role == Role.ADMIN) {
+
+            addButton.setToolTipText(
+                    "Add IP records"
+            );
+
+            viewButton.setToolTipText(
+                    "View all IP records"
+            );
+
+            updateButton.setToolTipText(
+                    "Update IP records"
+            );
+
+            deleteButton.setToolTipText(
+                    "Delete IP records"
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+
+        } else if (role == Role.RESEARCHER) {
+
+            addButton.setToolTipText(
+                    "Add IP records"
+            );
+
+            viewButton.setToolTipText(
+                    "View all IP records"
+            );
+
+            updateButton.setToolTipText(
+                    "Update IP records"
+            );
+
+            deletePermissionMessage =
+                    "Only Admin can delete IP records.";
+
+            makeRestrictedButton(
+                    deleteButton,
+                    deletePermissionMessage
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+
+        } else if (role == Role.REVIEWER) {
+
+            addPermissionMessage =
+                    "Only Admin or Researcher can add IP records.";
+
+            updatePermissionMessage =
+                    "Only Admin or Researcher can update IP records.";
+
+            deletePermissionMessage =
+                    "Only Admin can delete IP records.";
+
+            makeRestrictedButton(
+                    addButton,
+                    addPermissionMessage
+            );
+
+            makeRestrictedButton(
+                    updateButton,
+                    updatePermissionMessage
+            );
+
+            makeRestrictedButton(
+                    deleteButton,
+                    deletePermissionMessage
+            );
+
+            viewButton.setToolTipText(
+                    "View all IP records"
+            );
+
+            clearButton.setToolTipText(
+                    "Clear the form"
+            );
+        }
+    }
+
+    private void makeRestrictedButton(
+            JButton button,
+            String message) {
+
+        button.setToolTipText(message);
+
+        button.setForeground(
+                UIManager.getColor(
+                        "Button.disabledText"
+                )
+        );
+
+        button.setBackground(
+                UIManager.getColor(
+                        "Button.background"
+                )
+        );
+    }
+
+    private void showPermissionMessage(
+            String message) {
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Access Restricted",
+                JOptionPane.WARNING_MESSAGE
+        );
     }
 
     private IntellectualProperty createIP() {
 
-        int id = idField.getText().isEmpty()
-                ? 0
-                : Integer.parseInt(idField.getText());
+        int id =
+                idField.getText().isEmpty()
+                        ? 0
+                        : Integer.parseInt(
+                                idField.getText()
+                        );
 
-        String type = (String) typeBox.getSelectedItem();
+        String type =
+                (String) typeBox.getSelectedItem();
 
-        String title = titleField.getText();
-        String inventor = inventorField.getText();
-        String date = dateField.getText();
-        String status = statusField.getText();
-        String subtype = subtypeField.getText();
-        String description = descriptionArea.getText();
+        String title =
+                titleField.getText();
+
+        String inventor =
+                inventorField.getText();
+
+        String date =
+                dateField.getText();
+
+        String status =
+                statusField.getText();
+
+        String subtype =
+                subtypeField.getText();
+
+        String description =
+                descriptionArea.getText();
 
         if (type.equals("Patent")) {
 
@@ -173,7 +409,8 @@ public class IPRecordFrame extends JFrame {
                 return;
             }
 
-            IntellectualProperty ip = createIP();
+            IntellectualProperty ip =
+                    createIP();
 
             if (dao.add(ip)) {
 
@@ -183,7 +420,10 @@ public class IPRecordFrame extends JFrame {
                 );
 
                 clearFields();
-                outputArea.setText(dao.getAll());
+
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 
@@ -197,7 +437,8 @@ public class IPRecordFrame extends JFrame {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Invalid input: " + e.getMessage()
+                    "Invalid input: "
+                            + e.getMessage()
             );
         }
     }
@@ -216,7 +457,8 @@ public class IPRecordFrame extends JFrame {
                 return;
             }
 
-            IntellectualProperty ip = createIP();
+            IntellectualProperty ip =
+                    createIP();
 
             if (dao.update(ip)) {
 
@@ -225,7 +467,9 @@ public class IPRecordFrame extends JFrame {
                         "IP record updated successfully!"
                 );
 
-                outputArea.setText(dao.getAll());
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 
@@ -239,7 +483,8 @@ public class IPRecordFrame extends JFrame {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Invalid input: " + e.getMessage()
+                    "Invalid input: "
+                            + e.getMessage()
             );
         }
     }
@@ -258,7 +503,10 @@ public class IPRecordFrame extends JFrame {
                 return;
             }
 
-            int id = Integer.parseInt(idField.getText());
+            int id =
+                    Integer.parseInt(
+                            idField.getText()
+                    );
 
             if (dao.delete(id)) {
 
@@ -268,7 +516,10 @@ public class IPRecordFrame extends JFrame {
                 );
 
                 clearFields();
-                outputArea.setText(dao.getAll());
+
+                outputArea.setText(
+                        dao.getAll()
+                );
 
             } else {
 
