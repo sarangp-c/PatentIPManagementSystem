@@ -222,9 +222,4 @@ The authentication and role-based access features were tested using the differen
  Charts / analytics	
  Document attachment system
 
-- Admin access tested successfully.
-- Researcher access tested successfully.
-- Reviewer access tested successfully.
-- Restricted operations tested successfully.
-- User Management access tested successfully.
-- Logout functionality tested successfully.
+
