@@ -34,6 +34,7 @@ public class IPRecordFrame extends JFrame {
     private JButton updateButton;
     private JButton deleteButton;
     private JButton clearButton;
+    private JButton loadButton;
 
     private String addPermissionMessage = "";
     private String updatePermissionMessage = "";
@@ -322,17 +323,59 @@ public class IPRecordFrame extends JFrame {
 
         fieldsPanel.setOpaque(false);
 
-        // ID
+        // =====================================================
+        // RECORD ID + LOAD
+        // =====================================================
+
         idField =
                 createTextField();
+
+        idField.setToolTipText(
+                "Enter Record ID and press Enter to load"
+        );
+
+        loadButton =
+                createActionButton(
+                        "Load",
+                        new ViewIcon(),
+                        DARK,
+                        DARK_HOVER
+                );
+
+        loadButton.setPreferredSize(
+                new Dimension(
+                        85,
+                        35
+                )
+        );
+
+        JPanel idPanel =
+                new JPanel(
+                        new BorderLayout(6, 0)
+                );
+
+        idPanel.setOpaque(false);
+
+        idPanel.add(
+                idField,
+                BorderLayout.CENTER
+        );
+
+        idPanel.add(
+                loadButton,
+                BorderLayout.EAST
+        );
 
         addField(
                 fieldsPanel,
                 "Record ID",
-                idField
+                idPanel
         );
 
-        // Type
+        // =====================================================
+        // TYPE
+        // =====================================================
+
         typeBox =
                 new JComboBox<>(
                         new String[]{
@@ -350,7 +393,10 @@ public class IPRecordFrame extends JFrame {
                 typeBox
         );
 
-        // Title
+        // =====================================================
+        // TITLE
+        // =====================================================
+
         titleField =
                 createTextField();
 
@@ -360,7 +406,10 @@ public class IPRecordFrame extends JFrame {
                 titleField
         );
 
-        // Inventor
+        // =====================================================
+        // INVENTOR
+        // =====================================================
+
         inventorField =
                 createTextField();
 
@@ -370,7 +419,10 @@ public class IPRecordFrame extends JFrame {
                 inventorField
         );
 
-        // Filing date
+        // =====================================================
+        // FILING DATE
+        // =====================================================
+
         dateField =
                 createTextField();
 
@@ -384,7 +436,10 @@ public class IPRecordFrame extends JFrame {
                 dateField
         );
 
-        // Status
+        // =====================================================
+        // STATUS
+        // =====================================================
+
         statusBox =
                 new JComboBox<>(
                         new String[]{
@@ -404,7 +459,10 @@ public class IPRecordFrame extends JFrame {
                 statusBox
         );
 
-        // Subtype
+        // =====================================================
+        // SUBTYPE
+        // =====================================================
+
         subtypeField =
                 createTextField();
 
@@ -522,7 +580,6 @@ public class IPRecordFrame extends JFrame {
 
         buttonPanel.setOpaque(false);
 
-        // ADD
         addButton =
                 createActionButton(
                         "Add",
@@ -531,7 +588,6 @@ public class IPRecordFrame extends JFrame {
                         BLUE_HOVER
                 );
 
-        // VIEW
         viewButton =
                 createActionButton(
                         "View All",
@@ -540,7 +596,6 @@ public class IPRecordFrame extends JFrame {
                         DARK_HOVER
                 );
 
-        // UPDATE
         updateButton =
                 createActionButton(
                         "Update",
@@ -549,7 +604,6 @@ public class IPRecordFrame extends JFrame {
                         GREEN_HOVER
                 );
 
-        // DELETE
         deleteButton =
                 createActionButton(
                         "Delete",
@@ -558,7 +612,6 @@ public class IPRecordFrame extends JFrame {
                         RED_HOVER
                 );
 
-        // CLEAR
         clearButton =
                 createActionButton(
                         "Clear",
@@ -669,7 +722,7 @@ public class IPRecordFrame extends JFrame {
         );
 
         // =====================================================
-        // CENTER AREA
+        // CENTER
         // =====================================================
 
         JPanel centerPanel =
@@ -710,10 +763,6 @@ public class IPRecordFrame extends JFrame {
 
         centerPanel.add(recordsCard);
 
-        // =====================================================
-        // MAIN PANEL
-        // =====================================================
-
         mainPanel.add(
                 headerPanel,
                 BorderLayout.NORTH
@@ -729,6 +778,14 @@ public class IPRecordFrame extends JFrame {
         // =====================================================
         // ACTIONS
         // =====================================================
+
+        loadButton.addActionListener(
+                e -> loadRecord()
+        );
+
+        idField.addActionListener(
+                e -> loadRecord()
+        );
 
         addButton.addActionListener(e -> {
 
@@ -783,6 +840,136 @@ public class IPRecordFrame extends JFrame {
         applyPermissions();
 
         viewRecords();
+    }
+
+    // =========================================================
+    // LOAD RECORD
+    // =========================================================
+
+    private void loadRecord() {
+
+        try {
+
+            String idText =
+                    idField.getText().trim();
+
+            if (idText.isEmpty()) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Enter a Record ID to load.",
+                        "Missing Record ID",
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                return;
+            }
+
+            int id =
+                    Integer.parseInt(idText);
+
+            IntellectualProperty ip =
+                    dao.getById(id);
+
+            if (ip == null) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No IP record found with ID "
+                                + id
+                                + ".",
+                        "Record Not Found",
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                return;
+            }
+
+            // =================================================
+            // LOAD COMMON DETAILS
+            // =================================================
+
+            titleField.setText(
+                    ip.getTitle()
+            );
+
+            inventorField.setText(
+                    ip.getInventorName()
+            );
+
+            dateField.setText(
+                    ip.getFilingDate()
+            );
+
+            statusBox.setSelectedItem(
+                    ip.getStatus()
+            );
+
+            descriptionArea.setText(
+                    ip.getDescription()
+            );
+
+            // =================================================
+            // LOAD TYPE + SUBTYPE
+            // =================================================
+
+            if (ip instanceof Patent) {
+
+                typeBox.setSelectedItem(
+                        "Patent"
+                );
+
+                subtypeField.setText(
+                        ((Patent) ip)
+                                .getPatentCategory()
+                );
+
+            } else if (
+                    ip instanceof Trademark) {
+
+                typeBox.setSelectedItem(
+                        "Trademark"
+                );
+
+                subtypeField.setText(
+                        ((Trademark) ip)
+                                .getTrademarkClass()
+                );
+
+            } else if (
+                    ip instanceof Copyright) {
+
+                typeBox.setSelectedItem(
+                        "Copyright"
+                );
+
+                subtypeField.setText(
+                        ((Copyright) ip)
+                                .getWorkType()
+                );
+            }
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Record ID "
+                            + id
+                            + " loaded successfully.\n\n"
+                            + "You can now change only the details you want to update.",
+                    "Record Loaded",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            titleField.requestFocus();
+
+        } catch (NumberFormatException e) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Record ID must be a valid number.",
+                    "Invalid Record ID",
+                    JOptionPane.WARNING_MESSAGE
+            );
+        }
     }
 
     // =========================================================
@@ -1341,8 +1528,36 @@ public class IPRecordFrame extends JFrame {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Enter the ID of the record to update.",
-                        "Missing ID",
+                        "Enter the Record ID first.",
+                        "Missing Record ID",
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                return;
+            }
+
+            int id =
+                    Integer.parseInt(
+                            idField.getText()
+                                    .trim()
+                    );
+
+            /*
+             * Make sure the record actually exists.
+             * Normally the user will have loaded it first.
+             */
+            IntellectualProperty existing =
+                    dao.getById(id);
+
+            if (existing == null) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No IP record found with ID "
+                                + id
+                                + ".\n\n"
+                                + "Load the record first.",
+                        "Record Not Found",
                         JOptionPane.WARNING_MESSAGE
                 );
 
@@ -1367,9 +1582,9 @@ public class IPRecordFrame extends JFrame {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Record not found.",
+                        "Failed to update IP record.",
                         "Update Failed",
-                        JOptionPane.WARNING_MESSAGE
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
 
@@ -1378,7 +1593,7 @@ public class IPRecordFrame extends JFrame {
             JOptionPane.showMessageDialog(
                     this,
                     "Record ID must be a valid number.",
-                    "Invalid Input",
+                    "Invalid Record ID",
                     JOptionPane.WARNING_MESSAGE
             );
 
@@ -1500,7 +1715,7 @@ public class IPRecordFrame extends JFrame {
     }
 
     // =========================================================
-    // ROUNDED BUTTON CLASS
+    // ROUNDED BUTTON
     // =========================================================
 
     private static class RoundedButton
@@ -1585,9 +1800,7 @@ public class IPRecordFrame extends JFrame {
                     (Graphics2D)
                             g.create();
 
-            g2.setColor(
-                    Color.WHITE
-            );
+            g2.setColor(Color.WHITE);
 
             g2.setStroke(
                     new BasicStroke(
@@ -1640,14 +1853,10 @@ public class IPRecordFrame extends JFrame {
                     (Graphics2D)
                             g.create();
 
-            g2.setColor(
-                    Color.WHITE
-            );
+            g2.setColor(Color.WHITE);
 
             g2.setStroke(
-                    new BasicStroke(
-                            2f
-                    )
+                    new BasicStroke(2f)
             );
 
             g2.drawOval(
@@ -1693,9 +1902,7 @@ public class IPRecordFrame extends JFrame {
                     (Graphics2D)
                             g.create();
 
-            g2.setColor(
-                    Color.WHITE
-            );
+            g2.setColor(Color.WHITE);
 
             g2.setStroke(
                     new BasicStroke(
@@ -1755,9 +1962,7 @@ public class IPRecordFrame extends JFrame {
                     (Graphics2D)
                             g.create();
 
-            g2.setColor(
-                    Color.WHITE
-            );
+            g2.setColor(Color.WHITE);
 
             g2.setStroke(
                     new BasicStroke(
@@ -1810,9 +2015,7 @@ public class IPRecordFrame extends JFrame {
                     (Graphics2D)
                             g.create();
 
-            g2.setColor(
-                    Color.WHITE
-            );
+            g2.setColor(Color.WHITE);
 
             g2.setStroke(
                     new BasicStroke(

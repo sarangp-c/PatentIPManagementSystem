@@ -42,7 +42,8 @@ public class IPRecordDAO {
 
         Connection conn = DatabaseConnection.getConnection();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
 
             stmt.setString(1, type);
             stmt.setString(2, ip.getTitle());
@@ -56,39 +57,58 @@ public class IPRecordDAO {
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to add IP record.");
+            System.err.println(
+                    "Failed to add IP record."
+            );
+
             e.printStackTrace();
 
             return false;
         }
     }
 
+    // =========================================================
+    // GET ALL RECORDS
+    // =========================================================
+
     public String getAll() {
 
-        String sql = "SELECT * FROM ip_records";
+        String sql =
+                "SELECT * FROM ip_records";
 
-        Connection conn = DatabaseConnection.getConnection();
+        Connection conn =
+                DatabaseConnection.getConnection();
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder result =
+                new StringBuilder();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql);
+             ResultSet rs =
+                     stmt.executeQuery()) {
 
             while (rs.next()) {
 
                 result.append(
                         "ID: " + rs.getInt("id") +
-                        " | Type: " + rs.getString("type") +
-                        " | Title: " + rs.getString("title") +
-                        " | Inventor: " + rs.getString("inventor_name") +
-                        " | Date: " + rs.getString("filing_date") +
-                        " | Status: " + rs.getString("status") +
-                        " | Sub-type: " + rs.getString("sub_type_value") +
+                        " | Type: " +
+                        rs.getString("type") +
+                        " | Title: " +
+                        rs.getString("title") +
+                        " | Inventor: " +
+                        rs.getString("inventor_name") +
+                        " | Date: " +
+                        rs.getString("filing_date") +
+                        " | Status: " +
+                        rs.getString("status") +
+                        " | Sub-type: " +
+                        rs.getString("sub_type_value") +
                         "\n"
                 );
             }
 
             if (result.length() == 0) {
+
                 return "No IP records found.";
             }
 
@@ -97,9 +117,110 @@ public class IPRecordDAO {
         } catch (SQLException e) {
 
             e.printStackTrace();
+
             return "Failed to retrieve IP records.";
         }
     }
+
+    // =========================================================
+    // GET RECORD BY ID
+    // =========================================================
+
+    public IntellectualProperty getById(int id) {
+
+        String sql =
+                "SELECT * FROM ip_records WHERE id = ?";
+
+        Connection conn =
+                DatabaseConnection.getConnection();
+
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
+                if (rs.next()) {
+
+                    String type =
+                            rs.getString("type");
+
+                    String title =
+                            rs.getString("title");
+
+                    String inventor =
+                            rs.getString("inventor_name");
+
+                    String filingDate =
+                            rs.getString("filing_date");
+
+                    String status =
+                            rs.getString("status");
+
+                    String description =
+                            rs.getString("description");
+
+                    String subType =
+                            rs.getString("sub_type_value");
+
+                    if ("Patent".equalsIgnoreCase(type)) {
+
+                        return new Patent(
+                                id,
+                                title,
+                                inventor,
+                                filingDate,
+                                status,
+                                description,
+                                subType
+                        );
+
+                    } else if (
+                            "Trademark".equalsIgnoreCase(type)) {
+
+                        return new Trademark(
+                                id,
+                                title,
+                                inventor,
+                                filingDate,
+                                status,
+                                description,
+                                subType
+                        );
+
+                    } else if (
+                            "Copyright".equalsIgnoreCase(type)) {
+
+                        return new Copyright(
+                                id,
+                                title,
+                                inventor,
+                                filingDate,
+                                status,
+                                description,
+                                subType
+                        );
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+
+            System.err.println(
+                    "Failed to retrieve IP record."
+            );
+
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
 
     public boolean update(IntellectualProperty ip) {
 
@@ -115,26 +236,31 @@ public class IPRecordDAO {
         if (ip instanceof Patent) {
 
             type = "Patent";
-            subType = ((Patent) ip).getPatentCategory();
+            subType =
+                    ((Patent) ip).getPatentCategory();
 
         } else if (ip instanceof Trademark) {
 
             type = "Trademark";
-            subType = ((Trademark) ip).getTrademarkClass();
+            subType =
+                    ((Trademark) ip).getTrademarkClass();
 
         } else if (ip instanceof Copyright) {
 
             type = "Copyright";
-            subType = ((Copyright) ip).getWorkType();
+            subType =
+                    ((Copyright) ip).getWorkType();
 
         } else {
 
             return false;
         }
 
-        Connection conn = DatabaseConnection.getConnection();
+        Connection conn =
+                DatabaseConnection.getConnection();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
 
             stmt.setString(1, type);
             stmt.setString(2, ip.getTitle());
@@ -149,20 +275,30 @@ public class IPRecordDAO {
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to update IP record.");
+            System.err.println(
+                    "Failed to update IP record."
+            );
+
             e.printStackTrace();
 
             return false;
         }
     }
 
+    // =========================================================
+    // DELETE
+    // =========================================================
+
     public boolean delete(int id) {
 
-        String sql = "DELETE FROM ip_records WHERE id = ?";
+        String sql =
+                "DELETE FROM ip_records WHERE id = ?";
 
-        Connection conn = DatabaseConnection.getConnection();
+        Connection conn =
+                DatabaseConnection.getConnection();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
 
@@ -170,7 +306,10 @@ public class IPRecordDAO {
 
         } catch (SQLException e) {
 
-            System.err.println("Failed to delete IP record.");
+            System.err.println(
+                    "Failed to delete IP record."
+            );
+
             e.printStackTrace();
 
             return false;
